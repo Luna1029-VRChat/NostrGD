@@ -61,16 +61,14 @@ cp -r path/to/NostrGD/addons/nostr_godot your_project/addons/
 
 ### 3. NuGet 依存パッケージ
 
-プロジェクトの `.csproj` に以下を追加してください (`GDNostr.csproj` 参照):
+プロジェクトのルートで以下のコマンドを実行してください:
 
-```xml
-<ItemGroup>
-  <PackageReference Include="NBitcoin" Version="10.0.6" />
-  <PackageReference Include="NBitcoin.Secp256k1" Version="4.0.0" />
-  <PackageReference Include="Nostr.Client" Version="2.1.0" />
-  <PackageReference Include="Nostr.Sdk" Version="0.44.2" />
-  <PackageReference Include="System.Memory" Version="4.6.3" />
-</ItemGroup>
+```bash
+dotnet add package NBitcoin --version 10.0.6
+dotnet add package NBitcoin.Secp256k1 --version 4.0.0
+dotnet add package Nostr.Client --version 2.1.0
+dotnet add package Nostr.Sdk --version 0.44.2
+dotnet add package System.Memory --version 4.6.3
 ```
 
 ---
