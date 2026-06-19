@@ -219,6 +219,14 @@ func _ready() -> void:
 	_connect_relays()
 
 func _apply_theme() -> void:
+	var theme := Theme.new()
+	var font_path := "res://fonts/NotoSansJP.ttf"
+	if ResourceLoader.exists(font_path):
+		var font := ResourceLoader.load(font_path) as FontFile
+		if font:
+			font.fixed_size = 14
+			theme.default_font = font
+	get_window().theme = theme
 	var window_bg = StyleBoxFlat.new()
 	window_bg.bg_color = Color(0.09, 0.1, 0.12)
 
