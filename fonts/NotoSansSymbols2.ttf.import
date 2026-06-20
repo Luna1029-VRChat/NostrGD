@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://bplh0q6fjm3m2"
-path="res://.godot/imported/NotoSansSymbols2.ttf-fallback.fontdata"
+path="res://.godot/imported/NotoSansSymbols2.ttf-22e4d5afff6ab1c663cd56450be4d2bd.fontdata"
 
 [deps]
 
 source_file="res://fonts/NotoSansSymbols2.ttf"
-dest_files=["res://.godot/imported/NotoSansSymbols2.ttf-fallback.fontdata"]
+dest_files=["res://.godot/imported/NotoSansSymbols2.ttf-22e4d5afff6ab1c663cd56450be4d2bd.fontdata"]
 
 [params]
 
