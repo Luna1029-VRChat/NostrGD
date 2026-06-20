@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://sgxtwctfjqqt"]
 
-[ext_resource type="Script" uid="uid://bvhvihrk1ov0p" path="res://main.gd" id="1_wj02o"]
+[ext_resource type="Script" uid="uid://dne3rmejj1yxo" path="res://main.gd" id="1_wj02o"]
 
 [sub_resource type="StyleBoxFlat" id="2"]
 content_margin_left = 16.0
@@ -355,6 +355,6 @@ autowrap_mode = 2
 [connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavTimeline" to="." method="_on_nav_timeline"]
 [connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavNotifications" to="." method="_on_nav_notifications"]
 [connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavDM" to="." method="_on_nav_dm"]
+[connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavBookmarks" to="." method="_on_nav_bookmarks"]
 [connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavProfile" to="." method="_on_nav_profile"]
 [connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavSettings" to="." method="_on_nav_settings"]
-[connection signal="pressed" from="Sidebar/SidebarInner/NavSection/NavMenu/NavBookmarks" to="." method="_on_nav_bookmarks"]

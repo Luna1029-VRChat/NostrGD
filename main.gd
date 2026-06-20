@@ -174,6 +174,11 @@ func _ready() -> void:
 	for i in nav_buttons.size():
 		if i < _nav_button_icons.size() and _nav_button_icons[i]:
 			nav_buttons[i].icon = _nav_button_icons[i]
+		nav_buttons[i].add_theme_color_override("icon_normal_color", Color.WHITE)
+		nav_buttons[i].add_theme_color_override("icon_hover_color", Color.WHITE)
+		nav_buttons[i].add_theme_color_override("icon_pressed_color", Color.WHITE)
+		nav_buttons[i].add_theme_color_override("icon_focus_color", Color.WHITE)
+		nav_buttons[i].add_theme_color_override("icon_disabled_color", Color.WHITE)
 
 	_reply_context_label = Label.new()
 	_reply_context_label.add_theme_color_override("font_color", Color(0.5, 0.7, 1))
