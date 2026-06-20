@@ -221,9 +221,14 @@ func _ready() -> void:
 func _apply_theme() -> void:
 	var font_path := "res://fonts/NotoSansJP.ttf"
 	if ResourceLoader.exists(font_path):
-		var font := ResourceLoader.load(font_path)
-		if font is Font:
-			ThemeDB.fallback_font = font
+		var jp_font := ResourceLoader.load(font_path)
+		if jp_font is Font:
+			var default_theme := ThemeDB.fallback_theme
+			if default_theme:
+				var default_font := default_theme.get_font("font", "Label") as Font
+				if default_font:
+					jp_font.fallbacks = [default_font]
+			ThemeDB.fallback_font = jp_font
 			var theme := Theme.new()
 			var types := [
 				"Label", "Button", "LineEdit", "TextEdit", "RichTextLabel",
@@ -234,14 +239,8 @@ func _apply_theme() -> void:
 				"Tree", "MenuButton", "HSlider", "VSlider", "ProgressBar"
 			]
 			for t in types:
-				theme.set_font("font", t, font)
+				theme.set_font("font", t, jp_font)
 			self.theme = theme
-			var diag := Label.new()
-			diag.text = "日本語診断"
-			diag.add_theme_font_override("font", font)
-			diag.add_theme_color_override("font_color", Color.YELLOW)
-			diag.position = Vector2(4, 4)
-			add_child(diag)
 	var window_bg = StyleBoxFlat.new()
 	window_bg.bg_color = Color(0.09, 0.1, 0.12)
 
