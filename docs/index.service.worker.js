@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1782052416|1689651039';
+const CACHE_VERSION = '1782054289|3563039438';
 /** @type {string} */
 const CACHE_PREFIX = 'NostrGD-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;

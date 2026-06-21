@@ -1160,65 +1160,65 @@ func _refresh_profile() -> void:
 	panel.add_child(scroll)
 	var margin = MarginContainer.new()
 	margin.name = "ProfileMargin"
-		margin.add_theme_constant_override("margin_left", 16)
-		margin.add_theme_constant_override("margin_right", 16)
-		margin.add_theme_constant_override("margin_top", 16)
-		margin.add_theme_constant_override("margin_bottom", 16)
-		margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		scroll.add_child(margin)
-		var vbox = VBoxContainer.new()
-		vbox.name = "ProfileVBox"
-		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		vbox.add_theme_constant_override("separation", 8)
-		margin.add_child(vbox)
-		var hbox = HBoxContainer.new()
-		hbox.name = "ProfileHeader"
-		hbox.add_theme_constant_override("separation", 16)
-		vbox.add_child(hbox)
-		var arect = TextureRect.new()
-		arect.name = "ProfileAvatar"
-		arect.custom_minimum_size = Vector2(80, 80)
-		arect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		arect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		arect.clip_contents = true
-		arect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		arect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		hbox.add_child(arect)
-		var nvbox = VBoxContainer.new()
-		nvbox.name = "ProfileNameSection"
-		nvbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		nvbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		hbox.add_child(nvbox)
-		var nl = Label.new()
-		nl.name = "ProfileName"
-		nl.add_theme_font_size_override("font_size", 22)
-		nvbox.add_child(nl)
-		var al = Label.new()
-		al.name = "ProfileAbout"
-		al.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		al.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
-		nvbox.add_child(al)
-		var pl = Label.new()
-		pl.name = "ProfilePubkey"
-		pl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		vbox.add_child(pl)
-		var ll = Label.new()
-		ll.name = "ProfileLud"
-		ll.add_theme_color_override("font_color", Color(0.5, 0.7, 1))
-		vbox.add_child(ll)
-		var eb = Button.new()
-		eb.text = "プロフィールを編集"
-		eb.pressed.connect(_on_profile_edit)
-		vbox.add_child(eb)
-		var cb = Button.new()
-		cb.text = "Pubkey をコピー"
-		cb.pressed.connect(func():
-			_safe_clipboard_set(NostrGD.GetPublicKeyHex())
-			status_label.text = "Pubkey をコピーしました"
-		)
-		vbox.add_child(cb)
-		name_label = panel.get_node("ProfileScroll/ProfileMargin/ProfileVBox/ProfileHeader/ProfileNameSection/ProfileName")
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(margin)
+	var vbox = VBoxContainer.new()
+	vbox.name = "ProfileVBox"
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+	var hbox = HBoxContainer.new()
+	hbox.name = "ProfileHeader"
+	hbox.add_theme_constant_override("separation", 16)
+	vbox.add_child(hbox)
+	var arect = TextureRect.new()
+	arect.name = "ProfileAvatar"
+	arect.custom_minimum_size = Vector2(80, 80)
+	arect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	arect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	arect.clip_contents = true
+	arect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	arect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	hbox.add_child(arect)
+	var nvbox = VBoxContainer.new()
+	nvbox.name = "ProfileNameSection"
+	nvbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nvbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hbox.add_child(nvbox)
+	var nl = Label.new()
+	nl.name = "ProfileName"
+	nl.add_theme_font_size_override("font_size", 22)
+	nvbox.add_child(nl)
+	var al = Label.new()
+	al.name = "ProfileAbout"
+	al.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	al.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	nvbox.add_child(al)
+	var pl = Label.new()
+	pl.name = "ProfilePubkey"
+	pl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(pl)
+	var ll = Label.new()
+	ll.name = "ProfileLud"
+	ll.add_theme_color_override("font_color", Color(0.5, 0.7, 1))
+	vbox.add_child(ll)
+	var eb = Button.new()
+	eb.text = "プロフィールを編集"
+	eb.pressed.connect(_on_profile_edit)
+	vbox.add_child(eb)
+	var cb = Button.new()
+	cb.text = "Pubkey をコピー"
+	cb.pressed.connect(func():
+		_safe_clipboard_set(NostrGD.GetPublicKeyHex())
+		status_label.text = "Pubkey をコピーしました"
+	)
+	vbox.add_child(cb)
+	name_label = panel.get_node("ProfileScroll/ProfileMargin/ProfileVBox/ProfileHeader/ProfileNameSection/ProfileName")
 	var name_vbox = panel.get_node("ProfileScroll/ProfileMargin/ProfileVBox/ProfileHeader/ProfileNameSection")
 	var about_label = name_vbox.get_node("ProfileAbout")
 	var pubkey_label = panel.get_node("ProfileScroll/ProfileMargin/ProfileVBox/ProfilePubkey")
