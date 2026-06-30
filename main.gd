@@ -26,7 +26,7 @@ func _get_icon(name: String, size: int = 14) -> Texture2D:
 
 @onready var private_key_input: TextEdit = $Sidebar/SidebarInner/AccountSection/VBoxContainer/LoginContainer/PrivateKeyInput
 @onready var status_label: Label = $Sidebar/SidebarInner/StatusSection/StatusLabel
-@onready var message_input: LineEdit = $MainPanel/InputBar/HBoxContainer/MessageInput
+@onready var message_input: TextEdit = $MainPanel/InputBar/HBoxContainer/MessageInput
 @onready var timeline: VBoxContainer = $MainPanel/ScrollContainer/Timeline
 @onready var register_name_input: LineEdit = $Sidebar/SidebarInner/AccountSection/VBoxContainer/CreateContainer/RegisterNameInput
 @onready var register_display_input: LineEdit = $Sidebar/SidebarInner/AccountSection/VBoxContainer/CreateContainer/RegisterDisplayInput
@@ -134,6 +134,15 @@ const BTN_MQ_TALL: int = 44
 var _touch_start_x: float = -1.0
 var _touch_start_y: float = -1.0
 var _touch_started: bool = false
+var _touch_scroll_container = null
+var _touch_scrolling: bool = false
+var _touch_scroll_start_y: float = 0.0
+var _touch_scroll_initial: int = 0
+var _touch_scroll_containers: Array = []
+var _mention_popup: PopupMenu = null
+var _mention_query: String = ""
+var _mention_start_pos: int = -1
+var _pending_mentions: Dictionary = {}
 
 static func _relay_url(entry: String) -> String:
 	return entry.split(" ", false)[0]
@@ -204,17 +213,20 @@ func _ready() -> void:
 
 	$MainPanel/ScrollContainer.get_v_scroll_bar().value_changed.connect(_on_timeline_scrolled)
 
-	message_input.text_submitted.connect(func(text):
-		if not text.strip_edges().is_empty():
-			_on_send_button_pressed()
-	)
-
+	# メンション入力補助
+	_setup_mention_popup()
+	message_input.text_changed.connect(_on_message_text_changed)
 	message_input.gui_input.connect(func(event):
-		if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo:
-			_reply_context = {}
-			_reply_context_label.visible = false
-			_set_input_placeholder("")
-			message_input.release_focus()
+		if event is InputEventKey:
+			if event.keycode == KEY_ESCAPE and event.pressed and not event.echo:
+				_reply_context = {}
+				_reply_context_label.visible = false
+				_set_input_placeholder("")
+				message_input.release_focus()
+			elif event.keycode == KEY_ENTER and event.pressed and not event.echo and not event.is_shift_pressed():
+				if not message_input.text.strip_edges().is_empty():
+					_on_send_button_pressed()
+				accept_event()
 	)
 
 	$Sidebar/SidebarInner/AccountSection/VBoxContainer/LoggedInContainer/DisconnectButton.visible = false
@@ -439,10 +451,16 @@ func _input(event: InputEvent) -> void:
 			_touch_start_x = event.position.x
 			_touch_start_y = event.position.y
 			_touch_started = true
+			_touch_scrolling = false
+			_touch_scroll_container = _scroll_container_at(event.position)
+			if _touch_scroll_container:
+				_touch_scroll_start_y = event.position.y
+				_touch_scroll_initial = _touch_scroll_container.scroll_vertical
 		elif _touch_started:
 			var dx = event.position.x - _touch_start_x
 			var dy = event.position.y - _touch_start_y
 			_touch_started = false
+			_touch_scroll_container = null
 			if abs(dx) > 50 and abs(dx) > abs(dy) * 2:
 				if dx > 0 and not _sidebar_visible:
 					_sidebar_visible = true
@@ -451,6 +469,128 @@ func _input(event: InputEvent) -> void:
 					_sidebar_visible = false
 					_update_sidebar_state()
 
+	if event is InputEventScreenDrag:
+		if _touch_scroll_container and not _sidebar_visible:
+			var dy = event.position.y - _touch_scroll_start_y
+			var dx = event.position.x - _touch_start_x
+			if not _touch_scrolling:
+				if abs(dy) > 10 and abs(dy) > abs(dx) * 2:
+					_touch_scrolling = true
+				elif abs(dx) > 10 and abs(dx) > abs(dy) * 2:
+					_touch_scroll_container = null
+			if _touch_scrolling:
+				_touch_scroll_container.scroll_vertical = _touch_scroll_initial - int(dy)
+
+func _scroll_container_at(pos: Vector2):
+	for child in _collect_scroll_containers():
+		if child.visible and child.get_global_rect().has_point(pos):
+			return child
+	return null
+
+func _collect_scroll_containers() -> Array:
+	var result: Array = []
+	_collect_scroll_containers_r(self, result)
+	return result
+
+static func _collect_scroll_containers_r(node: Node, result: Array) -> void:
+	if node is ScrollContainer:
+		result.append(node)
+	for i in node.get_child_count():
+		var c = node.get_child(i)
+		if c.get_child_count() > 0:
+			_collect_scroll_containers_r(c, result)
+
+func _setup_mention_popup() -> void:
+	_mention_popup = PopupMenu.new()
+	_mention_popup.id_pressed.connect(_on_mention_selected)
+	_mention_popup.about_to_popup.connect(_update_mention_popup)
+	add_child(_mention_popup)
+
+func _update_mention_popup() -> void:
+	_mention_popup.clear()
+	var candidates = _get_mention_candidates(_mention_query)
+	for c in candidates:
+		var display = "@" + c["name"]
+		if c["pubkey"] != "":
+			display += " (" + c["pubkey"].substr(0, 8) + "...)"
+		_mention_popup.add_item(display, c["pubkey"])
+
+func _get_mention_candidates(query: String) -> Array:
+	var results: Array = []
+	var seen: Dictionary = {}
+	# プロフィールキャッシュから検索
+	for pubkey in profile_cache:
+		var prof = profile_cache[pubkey]
+		var name = prof.name if prof.name else prof.display_name
+		if name and (query.is_empty() or name.to_lower().contains(query.to_lower())):
+			if not seen.has(pubkey):
+				seen[pubkey] = true
+				results.append({"name": name, "pubkey": pubkey})
+	# タイムラインの投稿者からも検索
+	for event_id in received_event_ids:
+		var evt = received_event_ids[event_id]
+		var author_pubkey = evt.pubkey
+		if author_pubkey and (query.is_empty() or (profile_cache.has(author_pubkey) and (profile_cache[author_pubkey].name or profile_cache[author_pubkey].display_name).to_lower().contains(query.to_lower()))):
+			if not seen.has(author_pubkey):
+				seen[author_pubkey] = true
+				var prof = profile_cache[author_pubkey] if profile_cache.has(author_pubkey) else {}
+				var name = prof.name if prof.name else prof.display_name if prof.display_name else author_pubkey.substr(0, 8)
+				results.append({"name": name, "pubkey": author_pubkey})
+		if results.size() >= 10:
+			break
+	return results
+
+func _on_message_text_changed(text: String) -> void:
+	# TextEdit: カーソル位置は caret_position (Vector2i: x=column, y=row)
+	var caret_pos = message_input.caret_position
+	var cursor_char_index = 0
+	for i in range(caret_pos.y):
+		cursor_char_index += message_input.get_line(i).length() + 1  # +1 for newline
+	cursor_char_index += caret_pos.x
+	
+	# @ 以降の文字列を検索
+	var at_pos = text.rfind("@", cursor_char_index)
+	if at_pos != -1 and (at_pos == 0 or text[at_pos - 1] == " " or text[at_pos - 1] == "\n"):
+		var query = text.substr(at_pos + 1, cursor_char_index - at_pos - 1)
+		if not query.contains(" ") and not query.contains("\n"):
+			_mention_query = query
+			_mention_start_pos = at_pos
+			var pos = message_input.get_global_rect().position + message_input.get_caret_draw_pos() + Vector2(0, message_input.get_font_size())
+			_mention_popup.popup_at(pos)
+			return
+	_mention_popup.hide()
+	_mention_query = ""
+	_mention_start_pos = -1
+
+func _on_mention_selected(id: int) -> void:
+	var pubkey = _mention_popup.get_item_metadata(id)
+	if not pubkey:
+		return
+	var text = message_input.text
+	var before = text.substr(0, _mention_start_pos)
+	var after = text.substr(_mention_start_pos + _mention_query.length() + 1)  # @ + query
+	# @name 形式で挿入（表示用）、内部的には npub を保存
+	var name = _mention_popup.get_item_text(id).split(" (")[0].replace("@", "")
+	message_input.text = before + "@" + name + " " + after
+	# カーソル位置を @name の後ろに移動
+	var new_pos = _mention_start_pos + name.length() + 2
+	var row = 0
+	var col = new_pos
+	for i in range(message_input.get_line_count()):
+		var line_len = message_input.get_line(i).length() + 1
+		if col >= line_len:
+			col -= line_len
+			row += 1
+		else:
+			break
+	message_input.caret_position = Vector2i(col, row)
+	# 送信時に pubkey に置換するため保存
+	_pending_mentions["@" + name] = pubkey
+	_mention_popup.hide()
+	_mention_query = ""
+	_mention_start_pos = -1
+	message_input.grab_focus()
+
 func _setup_responsive_layout() -> void:
 	var vp = get_viewport()
 	_is_mobile = vp.size.x < DESKTOP_BREAKPOINT
@@ -458,6 +598,8 @@ func _setup_responsive_layout() -> void:
 	_update_sidebar_state()
 	$DrawerBg.gui_input.connect(func(event):
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_on_sidebar_close_pressed()
+		if event is InputEventScreenTouch and event.pressed:
 			_on_sidebar_close_pressed()
 	)
 	get_tree().root.size_changed.connect(_on_viewport_resized)
@@ -1959,13 +2101,25 @@ func _on_send_button_pressed() -> void:
 	var content = message_input.text.strip_edges()
 	if content.is_empty() or not NostrGD.IsLoggedIn:
 		return
+	
+	# メンション (@name) を p-tag 用 pubkey に置換
+	var mention_pubkeys: Array = []
+	for mention_name in _pending_mentions:
+		if content.contains(mention_name):
+			mention_pubkeys.append(_pending_mentions[mention_name])
+			content = content.replace(mention_name, "@" + mention_name.substr(1))  # 表示は @name のまま
+	
 	if _reply_context.has("event_id"):
 		NostrGD.SendReply(content, _reply_context["event_id"], _reply_context["pubkey"])
 		_reply_context = {}
 		_set_input_placeholder("")
 	else:
-		NostrGD.SendTextNote(content)
-	message_input.clear()
+		if mention_pubkeys.size() > 0:
+			NostrGD.SendTextNoteWithMentions(content, mention_pubkeys)
+		else:
+			NostrGD.SendTextNote(content)
+	message_input.text = ""
+	_pending_mentions.clear()
 	_reply_context_label.visible = false
 
 func _set_input_placeholder(text: String) -> void:

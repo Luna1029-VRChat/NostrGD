@@ -398,6 +398,17 @@ func SendTextNote(content: String) -> void:
 	_sign_and_broadcast(ev)
 
 
+func SendTextNoteWithMentions(content: String, mention_pubkeys: Array) -> void:
+	if not IsLoggedIn:
+		return
+	var tags := [["client", "NostrGD"]]
+	for pk in mention_pubkeys:
+		if pk.is_valid_hex(64):
+			tags.append(["p", pk])
+	var ev := _make_event(1, content, tags)
+	_sign_and_broadcast(ev)
+
+
 func SendProfileMetaData(name: String, display_name: String, about: String = "", picture: String = "", banner: String = "", lud16: String = "") -> void:
 	if not IsLoggedIn:
 		return

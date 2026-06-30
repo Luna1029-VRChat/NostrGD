@@ -105,11 +105,13 @@ layout_mode = 2
 [node name="HBoxContainer" type="HBoxContainer" parent="MainPanel/InputBar" unique_id=482595701]
 layout_mode = 2
 
-[node name="MessageInput" type="LineEdit" parent="MainPanel/InputBar/HBoxContainer" unique_id=126963061]
+[node name="MessageInput" type="TextEdit" parent="MainPanel/InputBar/HBoxContainer" unique_id=126963061]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "テキストを入力..."
+size_flags_vertical = 3
+placeholder_text = "テキストを入力... (Enterで送信, Shift+Enterで改行)"
+autowrap_mode = 1
 
 [node name="SendButton" type="Button" parent="MainPanel/InputBar/HBoxContainer" unique_id=1644481098]
 custom_minimum_size = Vector2(80, 44)
